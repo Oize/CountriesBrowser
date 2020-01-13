@@ -64,6 +64,12 @@ const useStyles = makeStyles(theme =>
     createStyles({
         flagHeader: {
             width: '40px'
+        },
+        loaderContainer: {
+            height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
         }
     })
 )
@@ -93,7 +99,11 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
     }, [])
 
     if (!countries) {
-        return <CircularProgress />
+        return (
+            <div className={styles.loaderContainer}>
+                <CircularProgress />
+            </div>
+        )
     }
 
     const createSortHandler = (property: keyof CountryBasic) => (event: React.MouseEvent<unknown>) => {
