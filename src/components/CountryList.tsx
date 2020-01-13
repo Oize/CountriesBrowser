@@ -7,9 +7,11 @@ import {
     TableHead,
     TableRow,
     TableSortLabel,
-    CircularProgress
+    CircularProgress,
+    Fab
 } from '@material-ui/core'
 import { makeStyles, createStyles } from '@material-ui/core/styles'
+import UpIcon from '@material-ui/icons/KeyboardArrowUp'
 
 import { Region, CountryBasic } from '../utils/constants'
 import { getCountriesByRegion } from '../utils/api'
@@ -62,6 +64,18 @@ function desc<T>(a: T, b: T, orderBy: keyof T) {
 
 const useStyles = makeStyles(theme =>
     createStyles({
+        container: {
+            marginTop: 48
+        },
+        tableContainer: {
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center'
+        },
+        table: {
+            maxWidth: 840
+        },
         flagHeader: {
             width: '40px'
         },
@@ -70,6 +84,11 @@ const useStyles = makeStyles(theme =>
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center'
+        },
+        fab: {
+            position: 'fixed',
+            top: theme.spacing(8),
+            right: theme.spacing(2)
         }
     })
 )
@@ -80,6 +99,7 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
     const [order, setOrder] = React.useState<Order>('asc')
     const [orderBy, setOrderBy] = React.useState<keyof CountryBasic>('name')
     const [width, setWidth] = useState<number>(window.innerWidth)
+    const [scrollY, setScrollY] = useState<number>(window.scrollY)
 
     useEffect(() => {
         async function fetchAPI() {
@@ -94,8 +114,16 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
             setWidth(window.innerWidth)
         }
 
+        function handleScroll() {
+            setScrollY(window.scrollY)
+        }
+
         window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
+        window.addEventListener('scroll', handleScroll)
+        return () => {
+            window.removeEventListener('resize', handleResize)
+            window.removeEventListener('scroll', handleScroll)
+        }
     }, [])
 
     if (!countries) {
@@ -120,6 +148,13 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
         showCountryDetails(name)
     }
 
+    const onUpClick = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        })
+    }
+
     const headCells: HeadCell[] = [
         { name: 'flag', numeric: false, label: 'Flag' },
         { name: 'name', numeric: false, label: 'Name' },
@@ -131,65 +166,72 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
     const hideFilterEnabled = width > 700
 
     return (
-        <TableContainer className={className}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        {headCells
-                            .filter(({ hideable }) => hideFilterEnabled || !hideable)
-                            .map(headCell => (
-                                <TableCell
-                                    className={headCell.name === 'flag' ? styles.flagHeader : undefined}
-                                    key={headCell.name}
-                                    align={headCell.numeric ? 'right' : 'left'}
-                                    sortDirection={orderBy === headCell.name ? order : false}
-                                >
-                                    {headCell.name === 'flag' ? (
-                                        headCell.label
-                                    ) : (
-                                        <TableSortLabel
-                                            active={orderBy === headCell.name}
-                                            direction={orderBy === headCell.name ? order : 'asc'}
-                                            onClick={createSortHandler(headCell.name)}
-                                        >
-                                            {headCell.label}
-                                        </TableSortLabel>
-                                    )}
-                                </TableCell>
-                            ))}
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {stableSort(countries, getSorting(order, orderBy)).map((row, index) => {
-                        return (
-                            <TableRow
-                                hover
-                                onClick={onRowClick.bind(null, row.name)}
-                                role="checkbox"
-                                tabIndex={-1}
-                                key={row.name}
-                            >
-                                {headCells
-                                    .filter(({ hideable }) => hideFilterEnabled || !hideable)
-                                    .map(({ name, numeric }) =>
-                                        name === 'flag' ? (
-                                            <FlagCell src={row.flag} />
-                                        ) : name === 'populationDensity' ? (
-                                            <TableCell key={name} align={numeric ? 'right' : 'left'}>
-                                                {row.populationDensity ? +row.populationDensity.toFixed(2) : 'NDA'}
-                                            </TableCell>
+        <div className={`${className} ${styles.container}`}>
+            <TableContainer className={styles.tableContainer}>
+                <Table className={styles.table}>
+                    <TableHead>
+                        <TableRow>
+                            {headCells
+                                .filter(({ hideable }) => hideFilterEnabled || !hideable)
+                                .map(headCell => (
+                                    <TableCell
+                                        className={headCell.name === 'flag' ? styles.flagHeader : undefined}
+                                        key={headCell.name}
+                                        align={headCell.numeric ? 'right' : 'left'}
+                                        sortDirection={orderBy === headCell.name ? order : false}
+                                    >
+                                        {headCell.name === 'flag' ? (
+                                            headCell.label
                                         ) : (
-                                            <TableCell key={name} align={numeric ? 'right' : 'left'}>
-                                                {row[name] || 'NDA'}
-                                            </TableCell>
-                                        )
-                                    )}
-                            </TableRow>
-                        )
-                    })}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                                            <TableSortLabel
+                                                active={orderBy === headCell.name}
+                                                direction={orderBy === headCell.name ? order : 'asc'}
+                                                onClick={createSortHandler(headCell.name)}
+                                            >
+                                                {headCell.label}
+                                            </TableSortLabel>
+                                        )}
+                                    </TableCell>
+                                ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {stableSort(countries, getSorting(order, orderBy)).map(row => {
+                            return (
+                                <TableRow
+                                    hover
+                                    onClick={onRowClick.bind(null, row.name)}
+                                    role="checkbox"
+                                    tabIndex={-1}
+                                    key={row.name}
+                                >
+                                    {headCells
+                                        .filter(({ hideable }) => hideFilterEnabled || !hideable)
+                                        .map(({ name, numeric }) =>
+                                            name === 'flag' ? (
+                                                <FlagCell key={name} src={row.flag} />
+                                            ) : name === 'populationDensity' ? (
+                                                <TableCell key={name} align={numeric ? 'right' : 'left'}>
+                                                    {row.populationDensity ? +row.populationDensity.toFixed(2) : 'NDA'}
+                                                </TableCell>
+                                            ) : (
+                                                <TableCell key={name} align={numeric ? 'right' : 'left'}>
+                                                    {row[name] || 'NDA'}
+                                                </TableCell>
+                                            )
+                                        )}
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            {scrollY > 50 && (
+                <Fab className={styles.fab} size="small" onClick={onUpClick}>
+                    <UpIcon />
+                </Fab>
+            )}
+        </div>
     )
 }
 

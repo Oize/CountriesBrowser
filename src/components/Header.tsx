@@ -46,7 +46,7 @@ const Header: React.FC<HeaderProps> = ({ selectedRegion, onRegionClick }) => {
     }, [])
 
     return (
-        <AppBar position="sticky" color="default">
+        <AppBar color="default">
             <Tabs
                 value={selectedRegion}
                 onChange={onTabClick}

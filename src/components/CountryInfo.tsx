@@ -89,7 +89,7 @@ const CountryInfo: React.FC<CountryInfoProps> = ({ country, name }) => {
         <div>
             <div className={styles.flexRow}>
                 <div className={styles.column}>
-                    <Typography className={headerClassName} id="simple-modal-title" variant="h4">
+                    <Typography className={headerClassName} id="simple-modal-title" variant="h5">
                         {country.name}
                     </Typography>
                     {!singleHeader && (
