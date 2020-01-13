@@ -42,5 +42,9 @@
         "babel-plugin-transform-imports": "^2.0.0",
         "customize-cra": "^0.9.1",
         "react-app-rewired": "^2.1.5"
+    },
+    "resolutions": {
+        "webpack": "^4.41.5",
+        "serialize-javascript": "^2.1.1"
     }
 }
