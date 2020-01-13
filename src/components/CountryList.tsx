@@ -26,6 +26,7 @@ interface HeadCell {
     name: keyof CountryBasic
     label: string
     numeric: boolean
+    hideable?: boolean
 }
 
 function stableSort<T>(array: T[], cmp: (a: T, b: T) => number) {
@@ -72,6 +73,7 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
     const [countries, setCountries] = useState<CountryBasic[]>()
     const [order, setOrder] = React.useState<Order>('asc')
     const [orderBy, setOrderBy] = React.useState<keyof CountryBasic>('name')
+    const [width, setWidth] = useState<number>(window.innerWidth)
 
     useEffect(() => {
         async function fetchAPI() {
@@ -80,6 +82,15 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
         }
         fetchAPI()
     }, [region])
+
+    useEffect(() => {
+        function handleResize() {
+            setWidth(window.innerWidth)
+        }
+
+        window.addEventListener('resize', handleResize)
+        return () => window.removeEventListener('resize', handleResize)
+    }, [])
 
     if (!countries) {
         return <CircularProgress />
@@ -102,34 +113,40 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
     const headCells: HeadCell[] = [
         { name: 'flag', numeric: false, label: 'Flag' },
         { name: 'name', numeric: false, label: 'Name' },
+        { name: 'population', numeric: true, label: 'Population', hideable: true },
+        { name: 'area', numeric: true, label: 'Area (km²)', hideable: true },
         { name: 'populationDensity', numeric: true, label: 'Density' }
     ]
+
+    const hideFilterEnabled = width > 700
 
     return (
         <TableContainer className={className}>
             <Table stickyHeader>
                 <TableHead>
                     <TableRow>
-                        {headCells.map(headCell => (
-                            <TableCell
-                                className={headCell.name === 'flag' ? styles.flagHeader : undefined}
-                                key={headCell.name}
-                                align={headCell.numeric ? 'right' : 'left'}
-                                sortDirection={orderBy === headCell.name ? order : false}
-                            >
-                                {headCell.name === 'flag' ? (
-                                    headCell.label
-                                ) : (
-                                    <TableSortLabel
-                                        active={orderBy === headCell.name}
-                                        direction={orderBy === headCell.name ? order : 'asc'}
-                                        onClick={createSortHandler(headCell.name)}
-                                    >
-                                        {headCell.label}
-                                    </TableSortLabel>
-                                )}
-                            </TableCell>
-                        ))}
+                        {headCells
+                            .filter(({ hideable }) => hideFilterEnabled || !hideable)
+                            .map(headCell => (
+                                <TableCell
+                                    className={headCell.name === 'flag' ? styles.flagHeader : undefined}
+                                    key={headCell.name}
+                                    align={headCell.numeric ? 'right' : 'left'}
+                                    sortDirection={orderBy === headCell.name ? order : false}
+                                >
+                                    {headCell.name === 'flag' ? (
+                                        headCell.label
+                                    ) : (
+                                        <TableSortLabel
+                                            active={orderBy === headCell.name}
+                                            direction={orderBy === headCell.name ? order : 'asc'}
+                                            onClick={createSortHandler(headCell.name)}
+                                        >
+                                            {headCell.label}
+                                        </TableSortLabel>
+                                    )}
+                                </TableCell>
+                            ))}
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -142,11 +159,21 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
                                 tabIndex={-1}
                                 key={row.name}
                             >
-                                <FlagCell src={row.flag} />
-                                <TableCell>{row.name}</TableCell>
-                                <TableCell align="right">
-                                    {row.populationDensity ? +row.populationDensity.toFixed(2) : 'NDA'}
-                                </TableCell>
+                                {headCells
+                                    .filter(({ hideable }) => hideFilterEnabled || !hideable)
+                                    .map(({ name, numeric }) =>
+                                        name === 'flag' ? (
+                                            <FlagCell src={row.flag} />
+                                        ) : name === 'populationDensity' ? (
+                                            <TableCell key={name} align={numeric ? 'right' : 'left'}>
+                                                {row.populationDensity ? +row.populationDensity.toFixed(2) : 'NDA'}
+                                            </TableCell>
+                                        ) : (
+                                            <TableCell key={name} align={numeric ? 'right' : 'left'}>
+                                                {row[name] || 'NDA'}
+                                            </TableCell>
+                                        )
+                                    )}
                             </TableRow>
                         )
                     })}
