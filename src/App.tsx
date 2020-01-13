@@ -13,9 +13,6 @@ const useStyles = makeStyles(theme =>
             height: '100%',
             width: '100%',
             minWidth: 0
-        },
-        list: {
-            height: 'calc(100vh - 48px)'
         }
     })
 )
@@ -28,7 +25,7 @@ const App: React.FC = () => {
     return (
         <div className={styles.appContainer}>
             <Header selectedRegion={region} onRegionClick={setRegion} />
-            <CountryList className={styles.list} region={region} showCountryDetails={setSelectedCountry} />
+            <CountryList region={region} showCountryDetails={setSelectedCountry} />
             {selectedCountry && (
                 <CountryDrawer name={selectedCountry} open={!!selectedCountry} handleClose={onPopupClose} />
             )}

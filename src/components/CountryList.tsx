@@ -132,7 +132,7 @@ const CountryList: React.FC<CountryListProps> = ({ className, region, showCountr
 
     return (
         <TableContainer className={className}>
-            <Table stickyHeader>
+            <Table>
                 <TableHead>
                     <TableRow>
                         {headCells
