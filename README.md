@@ -1,5 +1,17 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Setup
+
+```bash
+$ git clone https://github.com/Oize/CountriesBrowser.git
+
+$ cd CountriesBrowser
+
+$ yarn
+
+$ yarn start # Visit http://localhost:3000
+```
+
 ## Available Scripts
 
 In the project directory, you can run:
